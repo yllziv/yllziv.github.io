@@ -1,0 +1,96 @@
+一、查询服务的地址为：
+http://192.168.2.199:8081/PanMapSearch/services/GrammarParser
+可调用的函数为：panMapSearch
+   输入参数：IndoorSPARQL查询语句
+例如：查询朱欣焰老师办公室对面的老师及其办公室
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?TeacherX ?Room_X  Where {?Teacher_Zhu IndoorOWL:Name "朱欣焰" .?Teacher_Zhu  IndoorOWL:Has_Office ?Room_Zhu .?TeacherX   IndoorOWL:Has_Office ?Room_X .FILTER (Opposite(?Room_X,?Room_Zhu)) .}
+   输出结果：JSON数据类型，Key值为实例的本体概念类型，例如“Office”；key值对应的value值为JSON类型的数组。数组值为该类型的实例对应的所有属性值。例如，上述查询语句对应的查询结果为：
+{"Teacher":[{"LevelNo":"2","Name":"李四"}],"Office":[{"BuildingNo":"B1","ObjID_2D":"174","LevelNo":"2","Name":"204"}]}
+
+二、调用与返回
+   发送到服务器的soap信封应为：
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:q0="http://test.lc.lorg" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soapenv:Body>
+<q0:panMapSearch>
+  <q0:str>PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?TeacherX ?Room_X Where {?Teacher_Zhu IndoorOWL:Name "朱欣焰" .?Teacher_Zhu IndoorOWL:Has_Office ?Room_Zhu .?TeacherX IndoorOWL:Has_Office ?Room_X .FILTER (Opposite(?Room_X,?Room_Zhu)) .}</q0:str>
+  </q0:panMapSearch>
+  </soapenv:Body>
+  </soapenv:Envelope>
+
+   返回的soap信封为：
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+<soapenv:Body>
+<ns:panMapSearchResponse xmlns:ns="http://test.lc.lorg">
+  <ns:return>{"Teacher":[{"LevelNo":"2","Name":"李四"}],"Office":[{"BuildingNo":"B1","ObjID_2D":"174","LevelNo":"2","Name":"204"}]}</ns:return>
+  </ns:panMapSearchResponse>
+  </soapenv:Body>
+  </soapenv:Envelope>
+三、例子
+1、  查询朱欣焰老师办公室对面的老师及其办公室
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?TeacherX ?Room_X  Where {?Teacher_Zhu IndoorOWL:Name "朱欣焰" .?Teacher_Zhu  IndoorOWL:Has_Office ?Room_Zhu .?TeacherX   IndoorOWL:Has_Office ?Room_X .FILTER (Opposite(?Room_X,?Room_Zhu)) .}
+
+   结果
+{"Teacher":[{"LevelNo":"2","Name":"李四"}],"Office":[{"BuildingNo":"B1","ObjID_2D":"174","LevelNo":"2","Name":"204"}]}
+
+
+
+
+
+2、  查询朱老师的所有学生
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Student_Zhu Where{ ?Teacher_Zhu IndoorOWL:Name "朱欣焰" .?Teacher_Zhu  IndoorOWL:Teach ?Student_Zhu .}
+   结果
+{"Student":[{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2014206190005","LevelNo":"3","Teacher_Office":"205","Name":"李灿\n"},{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"男","StudentNo":"2014206190001","LevelNo":"3","Teacher_Office":"205","Name":"杨龙龙"},{"Grade":"研二","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2013206190076","LevelNo":"3","Teacher_Office":"205","Name":"黄珺"}]}
+
+
+
+
+
+3、  查询办公室在一楼的老师
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Teacher Where{?Teacher a IndoorOWL:Teacher .?Teacher IndoorOWL:LevelNo "1".}
+   结果
+{"Teacher":[{"StaffPosition":"副教授","Teacher_URL":"http://www.lmars.whu.edu.cn/WebSiteDetail.asp?webid=178&type=4","BuildingNo":"B1","Sex":"男","LevelNo":"1","Reserch_Dir":"智慧城市时空数据流计算、自然语言位置解析、机器人导航与Kinect实时制图等","Teacher_Office":"101","Name":"呙维"}]}
+
+
+
+
+
+4、  查询三楼的朱老师学生所在机房,以及在三楼的学生
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Student_Zhu ?Room_X Where{?Teacher_Zhu IndoorOWL:Name "朱欣焰" .?Teacher_Zhu  IndoorOWL:Teach ?Student_Zhu .?Student_Zhu  IndoorOWL:Locate_ComputerRoom ?Room_X .?Room_X  IndoorOWL:LevelNo "3" .}
+   结果
+{"Student":[{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2014206190005","LevelNo":"3","Teacher_Office":"205","Name":"李灿\n"},
+{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"男","StudentNo":"2014206190001","LevelNo":"3","Teacher_Office":"205","Name":"杨龙龙"},
+{"Grade":"研二","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2013206190076","LevelNo":"3","Teacher_Office":"205","Name":"黄珺"}],
+"ComputerRoom":[{"ObjectLocationRow":"NULL","Type":"机房","BuildingNo":"B1","Box3D":"NULL","ObjectLocationCol":"NULL","ObjID_2D":"392","Functions":"科研","Name":"327","Box2D":"NULL","ObjectImportance":"0","Geometry2D":"NULL","Geometry3D":"NULL","LevelNo":"3","ObjID_3D":"NULL","Owner":"实验室"},
+{"ObjectLocationRow":"NULL","Type":"机房","BuildingNo":"B1","Box3D":"NULL","ObjectLocationCol":"NULL","ObjID_2D":"392","Functions":"科研","Name":"327","Box2D":"NULL","ObjectImportance":"0","Geometry2D":"NULL","Geometry3D":"NULL","LevelNo":"3","ObjID_3D":"NULL","Owner":"实验室"},
+{"ObjectLocationRow":"NULL","Type":"机房","BuildingNo":"B1","Box3D":"NULL","ObjectLocationCol":"NULL","ObjID_2D":"392","Functions":"科研","Name":"327","Box2D":"NULL","ObjectImportance":"0","Geometry2D":"NULL","Geometry3D":"NULL","LevelNo":"3","ObjID_3D":"NULL","Owner":"实验室"}]}
+5、  查询327房间对面的房间
+   查询语句
+//查询327房间对面的房间
+
+                        "PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Room_X Where { ?Room_327 IndoorOWL:Name \"327\" .?Room_X  a IndoorOWL:ComputerRoom .FILTER (Opposite(?Room_327,?Room_X)) .}",
+   结果
+
+{"ComputerRoom":[{"Type":"机房","BuildingNo":"B1","ObjectImportance":"0","ObjID_2D":"384","Functions":"科研","LevelNo":"3","Name":"326","Owner":"实验室"}]}
+
+
+
+
+6、  查询204房间对面办公室及该办公室的老师
+   查询语句
+        PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Teacher_X ?Room_X Where {?Room_204 IndoorOWL:Name "204" .?Teacher_X a IndoorOWL:Teacher .?Teacher_X IndoorOWL:Has_Office ?Room_X .Filter(Opposite(?Room_204,?Room_X)) .}
+   查询结果
+{"Teacher":[{"StaffPosition":"空间信息系统研究室主任","Teacher_URL":"http://www.lmars.whu.edu.cn/prof_web/zhuxinyan/index.html#","BuildingNo":"B1","Sex":"男","LevelNo":"2","Reserch_Dir":"分布式空间数据库，webGIS,移动GIS应用，地理空间信息网络服务\n","Teacher_Office":"205","Name":"朱欣焰"}],"Office":[{"ObjectLocationRow":"NULL","Type":"办公室","BuildingNo":"B1","Box3D":"NULL","ObjectLocationCol":"NULL","ObjID_2D":"154","Functions":"科研","Name":"205","Box2D":"NULL","ObjectImportance":"0","Geometry2D":"NULL","Geometry3D":"NULL","LevelNo":"2","ObjID_3D":"NULL","Owner":"朱欣焰"}]}
+7、  查询205房间楼上的办公室及该办公室的老师
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Room_X ?Teacher_X Where {?Room_205 IndoorOWL:Name "205" .?Room_X a IndoorOWL:Office . ?Teacher_X IndoorOWL:Has_Office ?Room_X . FILTER (Upstairs(?Room_205,?Room_X)) .}
+   查询结果
+{"Office":[{"Type":"办公室","BuildingNo":"B1","ObjID_2D":"280","Functions":"科研","LevelNo":"2","Name":"305","Owner":"杨旭"}],"Teacher":[{"StaffPosition":"实验室党委书记","BuildingNo":"B1","Sex":"男","LevelNo":"2","Teacher_Office":"305","Name":"杨旭"}]}
+8、  查询325机房隔壁机房的学生
+   查询语句
+PREFIX IndoorOWL: <http://www.semanticweb.org/dell327/ontologies/2014/10/Ontology1415628375607.owl#> Select ?Lab_X ?Student_X Where {?Lab_325 IndoorOWL:Name "325" .?Lab_X a IndoorOWL:ComputerRoom . ?Student_X IndoorOWL:Locate_ComputerRoom ?Lab_X . FILTER (Adjacent(?Lab_325,?Lab_X)) .}
+   查询结果
+{"ComputerRoom":[{"ObjectLocationRow":"NULL","Type":"机房","BuildingNo":"B1","Box3D":"NULL","ObjectLocationCol":"NULL","ObjID_2D":"392","Functions":"科研","Name":"327","Box2D":"NULL","ObjectImportance":"0","Geometry2D":"NULL","Geometry3D":"NULL","LevelNo":"3","ObjID_3D":"NULL","Owner":"实验室"}],"Student":[{"Grade":"研二","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2013206190076","LevelNo":"3","Teacher_Office":"205","Name":"黄珺"},{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"女","StudentNo":"2014206190005","LevelNo":"3","Teacher_Office":"205","Name":"李灿"},{"Grade":"研一","StudentComputerRoom":"327","BuildingNo":"B1","TeacherName":"朱欣焰","Sex":"男","StudentNo":"2014206190001","LevelNo":"3","Teacher_Office":"205","Name":"杨龙龙"}]}

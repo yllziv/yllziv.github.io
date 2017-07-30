@@ -1,0 +1,1 @@
+$(document).ready(function(){$("iframe",window.parent.document).height($("#tool").height()),$(window).resize(function(){$("iframe",window.parent.document).height($("#tool").height())})});
